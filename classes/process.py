@@ -11,12 +11,14 @@ class Process:
         self.processes = processes
         self.deliv: List[int] = []
         self.sent: List[List[int]] = []
+        self.received = []
+        self.to_deliver_queue = []
         self.start_deliv_list()
         self.start_sent_list()
 
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.bind((ip, port))
-        self.socket.listen(1)
+        self.socket.listen(5)
         
         self.receive_thread = threading.Thread(target=self.receive_messages)
         self.receive_thread.start()
@@ -50,28 +52,54 @@ class Process:
 
     def receive_message(self, sender_id, message, st):
         print(f"Process {self.id} received message from {sender_id} with SENT {st}: {message}")
-        do_not_deliver = True
-        while(do_not_deliver):
-            do_not_deliver = False
-            for k, v in enumerate(self.deliv):
-                if(st[k][self.id] > v ):
-                    do_not_deliver = True
+        deliverable = True
+        for k, v in enumerate(self.deliv):
+            if(st[k][self.id] > v ):
+                deliverable = False
+        if(not deliverable):
+            self.received.append((sender_id,message,st))
+            return
+        # Pode dar deliver
         self.deliver_message(message)
         self.deliv[sender_id] =+ 1
         self.sent[sender_id][self.id] += 1
-
         for k in range(len(self.sent)):
             for l in range(len(self.sent)):
                 self.sent[k][l] = max(self.sent[k][l], st[k][l])
+        
+        self.check_for_deliverable()
+    
+    def check_for_deliverable(self):
+        any_delivered = False
+        for sender_id, message, st in self.received:
+            deliverable = True
+            for k, v in enumerate(self.deliv):
+                if(st[k][self.id] > v ):
+                  deliverable = False
+            if(deliverable):
+                any_delivered = True
+                self.deliver_message(message)
+                self.deliv[sender_id] =+ 1
+                self.sent[sender_id][self.id] += 1
+                for k in range(len(self.sent)):
+                    for l in range(len(self.sent)):
+                        self.sent[k][l] = max(self.sent[k][l], st[k][l])
+        if(any_delivered):
+            self.check_for_deliverable()
 
     def deliver_message(self, message):
-        print("DELIVERED: ", message)
+        print("Message delivered: " + message)
+        self.to_deliver_queue.append(message)
+    
+    def receive(self):
+        while(len(self.to_deliver_queue) <= 0):
+            continue
+        return self.to_deliver_queue.pop(0)
     
     def receive_messages(self):
         while True:
             conn, addr = self.socket.accept()
             data_s = conn.recv(2048).decode("UTF-8")
-            print(data_s)
             data = json.loads(data_s)
             if data:
                 self.receive_message(data['sender_id'], data['message'], data['sent'])
