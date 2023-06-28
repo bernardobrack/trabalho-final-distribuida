@@ -4,11 +4,12 @@ from typing import List
 import json
 
 class Process:
-    def __init__(self, process_id, ip, port, processes):
+    def __init__(self, process_id, ip, port, processes, broadcast_sequencer=None):
         self.id = process_id
         self.ip = ip
         self.port = port
         self.processes = processes
+        self.broadcast_sequencer = broadcast_sequencer
         self.deliv: List[int] = []
         self.sent: List[List[int]] = []
         self.received = []
@@ -34,7 +35,7 @@ class Process:
                 row.append(0)
             self.sent.append(row)
 
-    def send_message(self, target_id, message):
+    def send(self, target_id, message):
         host = self.processes[target_id]['ip']
         port = self.processes[target_id]['port']
         data = {
@@ -104,3 +105,6 @@ class Process:
             if data:
                 self.receive_message(data['sender_id'], data['message'], data['sent'])
             conn.close()
+    
+    def to_broadcast(self,m):
+        pass

@@ -29,6 +29,6 @@ except:
     
 process = Process(process_id, processes[process_id]['ip'], processes[process_id]['port'], processes)
 
-process.send_message(0, "OLÁ")
-process.send_message(0, "AHAHAH")
+process.send(0, "OLÁ")
+process.send(0, "AHAHAH")
 print(process.receive())
