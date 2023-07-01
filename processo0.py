@@ -37,7 +37,10 @@ except:
 process = Process(process_id, processes[process_id]['ip'], processes[process_id]['port'], processes, processSequencer)
 
 sleep(2)
-process.to_broadcast("HI FROM 0")
+process.broadcast("HI FROM 0")
+process.broadcast("AND HI AGAIN FROM 0")
 print(process.deliver())
 print(process.deliver())
 print(process.deliver())
+print(process.deliver())
+process.end()

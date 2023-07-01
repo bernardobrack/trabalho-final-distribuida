@@ -36,7 +36,9 @@ except:
 process = Process(process_id, processes[process_id]['ip'], processes[process_id]['port'], processes, processSequencer)
 
 sleep(1)
-process.to_broadcast("HI FROM 1")
+process.broadcast("HI FROM 1")
 print(process.deliver())
 print(process.deliver())
 print(process.deliver())
+print(process.deliver())
+process.end()

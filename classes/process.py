@@ -10,7 +10,9 @@ class Process:
         self.ip = ip
         self.port = port
         self.processes: Dict[int, Dict[str, any]] = processes
+        self.broadcast_sequencer_thread = None
         self.broadcast_sequencer = broadcast_sequencer
+        self.broadcast_socket = None
         self.deliv: List[int] = []
         self.sent: List[List[int]] = []
         self.sent_lock = threading.Lock()
@@ -55,7 +57,10 @@ class Process:
         #print("SEQUENCER")
         count = 0
         while True:
-            conn, addr = self.broadcast_socket.accept()
+            try:
+                conn, addr = self.broadcast_socket.accept()
+            except:
+                break
             data_s = conn.recv(2048).decode("UTF-8")
             data = json.loads(data_s)
             serialized = json.dumps({'sender_id': None, 'm': data, 'id': count})
@@ -173,7 +178,10 @@ class Process:
     
     def receive_messages(self):
         while True:
-            conn, addr = self.socket.accept()
+            try:
+                conn, addr = self.socket.accept()
+            except:
+                break
             data_s = conn.recv(2048).decode("UTF-8")
             data = json.loads(data_s)
             if data:
@@ -187,7 +195,7 @@ class Process:
             self.sent_lock.release()
             conn.close()
     
-    def to_broadcast(self,m):
+    def broadcast(self,m):
         if(self.broadcast_sequencer == None):
             print("You are not allowed to broadcast since no sequencer IP:PORT was given")
             return
@@ -203,3 +211,8 @@ class Process:
         while(len(self.to_deliver_broadcast_queue) <= 0):
             continue
         return self.to_deliver_broadcast_queue.pop(0)
+    
+    def end(self):
+        self.socket.close()
+        if(self.broadcast_socket != None):
+            self.broadcast_socket.close()
