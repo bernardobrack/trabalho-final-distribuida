@@ -2,6 +2,12 @@ import sys
 from classes.process import Process
 from time import sleep
 
+processSequencer = {
+    'ip': "127.0.0.1",
+    'port': 9035
+}
+
+
 process0Dict = {
     'ip': "127.0.0.1",
     'port': 9032
@@ -27,8 +33,10 @@ except:
     print("ERROR! You must inform de id of the process")
     exit(-1) 
     
-process = Process(process_id, processes[process_id]['ip'], processes[process_id]['port'], processes)
+process = Process(process_id, processes[process_id]['ip'], processes[process_id]['port'], processes, processSequencer)
 
-process.send(0, "OLÁ")
-process.send(0, "AHAHAH")
-print(process.receive())
+sleep(1)
+process.to_broadcast("HI FROM 1")
+print(process.deliver())
+print(process.deliver())
+print(process.deliver())
