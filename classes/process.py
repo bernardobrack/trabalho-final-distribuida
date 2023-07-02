@@ -1,17 +1,24 @@
 import socket
 import threading
-from typing import List, Dict
+from typing import List, Dict, Union
 import json
 from time import sleep
 
+
+Process_type = Dict[str, Union[str, int]]
+
 class Process:
-    def __init__(self, process_id, ip, port, processes, broadcast_sequencer=None):
+    def __init__(self, process_id, ip, port, processes: Dict[int, Process_type], broadcast_sequencer: Union[None, Process_type] = None, broadcastable: Union[Dict[int, Process_type], None] = None):
         self.id = process_id
         self.ip = ip
         self.port = port
         self.processes: Dict[int, Dict[str, any]] = processes
         self.broadcast_sequencer_thread = None
         self.broadcast_sequencer = broadcast_sequencer
+        if(broadcastable == None):
+            self.broadcastable = self.processes
+        else:
+            self.broadcastable = broadcastable
         self.broadcast_socket = None
         self.deliv: List[int] = []
         self.sent: List[List[int]] = []
@@ -55,7 +62,6 @@ class Process:
             
     def sequencer(self):
         #print("SEQUENCER")
-        count = 0
         while True:
             try:
                 conn, addr = self.broadcast_socket.accept()
@@ -63,9 +69,8 @@ class Process:
                 break
             data_s = conn.recv(2048).decode("UTF-8")
             data = json.loads(data_s)
-            serialized = json.dumps({'sender_id': None, 'm': data, 'id': count})
-            count += 1
-            for processDict in self.processes.values():
+            serialized = json.dumps({'sender_id': data['sender_id'], 'm': data['m'], 'sequencer': True})
+            for processDict in self.broadcastable.values():
                 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                     host = processDict['ip']
                     port = processDict['port']
@@ -126,18 +131,15 @@ class Process:
         t.start()
 
     def receive_message(self, sender_id, message, st):
-        print(f"Process {self.id} received message from {sender_id} with SENT {st}: {message}")
+        #print(f"Process {self.id} received message from {sender_id} with SENT {st}: {message}")
         deliverable = True
         for k, v in enumerate(self.deliv):
             if(st[k][self.id] > v ):
                 deliverable = False
         if(not deliverable):
             self.received.append((sender_id,message,st))
-            print("NOT DELIVERABLE")
             return
         # Pode dar deliver
-        print(f"Pode: {self.sent} {st}")
-        print(f"{self.deliv}")
         self.received.append((sender_id, message, st))
         self.deliver_message(sender_id, message, st)
         self.deliv[sender_id] =+ 1
@@ -167,7 +169,6 @@ class Process:
             self.check_for_deliverable()
 
     def deliver_message(self, sender_id, message, st):
-        print("Message delivered: " + message)
         self.to_deliver_queue.append(message)
         self.received.remove((sender_id, message, st))
     
@@ -185,8 +186,8 @@ class Process:
             data_s = conn.recv(2048).decode("UTF-8")
             data = json.loads(data_s)
             if data:
-                sender_id = data['sender_id']
-                if(sender_id == None):
+                sequencer = data.get('sequencer', False)
+                if(sequencer):
                     # Broadcast receive
                     self.to_deliver_broadcast_queue.append(data['m'])
                     continue
@@ -202,7 +203,7 @@ class Process:
         try:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                 s.connect((self.broadcast_sequencer['ip'], self.broadcast_sequencer['port']))
-                serialized_d = json.dumps(m)
+                serialized_d = json.dumps({'m': m, 'sender_id': self.id})
                 s.sendall(bytes(serialized_d, encoding="UTF-8"))
         except:
             print('An error ocurred when sending broadcast message to sequencer')
@@ -214,5 +215,10 @@ class Process:
     
     def end(self):
         self.socket.close()
+        self.socket = None
         if(self.broadcast_socket != None):
             self.broadcast_socket.close()
+            self.broadcast_socket = None
+
+    def isAlive(self):
+        return self.socket != None
