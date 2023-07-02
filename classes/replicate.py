@@ -1,6 +1,5 @@
 from classes.process import Process, Process_type
 from typing import Dict, Union
-import threading
 
 class Replicate:
     def __init__(self, id, ip, port, processes: Dict[int, Process_type], broadcast_sequencer: Union[None, Process_type]) -> None:
@@ -24,7 +23,6 @@ class PassiveReplica(Replicate):
 
     def __init__(self, id, ip, port, processes: Dict[int, Process_type]) -> None:
         super().__init__(id, ip, port, processes, None)
-        #self.listen_thread = threading.Thread(target=self.run)
         self._run()
 
     def _replicate(self, m):
