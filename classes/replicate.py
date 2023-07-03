@@ -1,5 +1,6 @@
 from classes.process import Process, Process_type
 from typing import Dict, Union
+from threading import Lock
 
 class Replicate:
     def __init__(self, id, ip, port, processes: Dict[int, Process_type], broadcast_sequencer: Union[None, Process_type]) -> None:
@@ -53,6 +54,8 @@ class PassiveReplica(Replicate):
 class ActiveReplica(Replicate):
     def __init__(self, id, ip, port, processes, broadcast_sequencer) -> None:
         super().__init__(id, ip, port, processes, broadcast_sequencer)
+        self.kvStorage: Dict[str, any] = {}
+        self.messageCounter: int = 1
         self._run()
     
     def _run(self):
@@ -63,4 +66,9 @@ class ActiveReplica(Replicate):
             self._dealWithMessage(message, client_id)
 
     def _dealWithMessage(self, message, client_id):
-        print(message, client_id)
+        if(message.get('operation') == 'put'):
+            self.kvStorage['key'] = message.get('value')
+            print(f"Value of key {message.get('key')} updated to {message.get('value')}")
+        if(message.get('operation') == 'get'):
+            self.process.send(client_id, {'m': self.kvStorage.get('key'), 'counter': self.messageCounter})
+            self.messageCounter += 1  

@@ -39,6 +39,10 @@ replicas_and_self = {
     3: {
         'ip': '127.0.0.1',
         'port': 9037
+    },
+    4: {
+        'ip': '127.0.0.1',
+        'port': 9038
     }
 }
 
@@ -48,8 +52,25 @@ broadcast_sequencer = {
 }
 
 cliente = ActiveClient(3, replicas_and_self[3]['ip'], replicas_and_self[3]['port'], replicas_and_self, broadcast_sequencer, replicas)
-cliente.replicate('REPLICANDO 0')
-cliente.replicate('REPLICANDO 4')
-cliente.replicate('REPLICANDO 3')
-cliente.replicate('REPLICANDO 1')
-cliente.replicate('REPLICANDO 2')
+cliente.replicate({
+            'operation': 'put',
+            'key': '0',
+            'value': 'MENSAGEM 0'
+                   })
+cliente.replicate({
+            'operation': 'get',
+            'key': '0'
+})
+cliente.replicate({
+            'operation': 'put',
+            'key': '1',
+            'value': 'MENSAGEM 2'
+                   })
+cliente.replicate({
+            'operation': 'get',
+            'key': '1'
+})
+print(cliente.receive())
+print(cliente.receive())
+print(cliente.receive())
+cliente.end()
