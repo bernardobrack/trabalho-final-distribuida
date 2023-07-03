@@ -1,4 +1,5 @@
 import sys
+sys.path.append('..')
 from classes.process import Process
 from time import sleep
 
@@ -6,6 +7,7 @@ processSequencer = {
     'ip': "127.0.0.1",
     'port': 9035
 }
+
 
 process0Dict = {
     'ip': "127.0.0.1",
@@ -34,10 +36,11 @@ except:
     
 process = Process(process_id, processes[process_id]['ip'], processes[process_id]['port'], processes, processSequencer)
 
-process.broadcast("HI FROM 2")
-print(process.deliver())
-print(process.deliver())
-print(process.deliver())
-print(process.deliver())
+sleep(1)
+print(process.receive())
+process.send(2, "AAADWAA")
+#print(process.deliver())
+#print(process.deliver())
+#print(process.deliver())
+#print(process.deliver())
 process.end()
-

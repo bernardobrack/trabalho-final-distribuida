@@ -1,5 +1,6 @@
-from classes.replicate import PassiveReplica
 import sys
+sys.path.append('..')
+from classes.replicate import PassiveReplica
 
 processes = {
     0: {
@@ -27,4 +28,4 @@ processes = {
     }
 }
 
-replica = PassiveReplica(1, processes[1]['ip'], processes[1]['port'], processes)
+replica = PassiveReplica(2, processes[2]['ip'], processes[2]['port'], processes)

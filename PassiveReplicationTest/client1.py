@@ -1,18 +1,22 @@
 import sys
+sys.path.append('..')
 from classes.process import Process
 
 processes = {
     0: {
         'ip': '127.0.0.1',
-        'port': 9034
+        'port': 9034,
+        'type': 'r'
     },
     1: {
         'ip': '127.0.0.1',
-        'port': 9035
+        'port': 9035,
+        'type': 'r'
     },
     2: {
         'ip': '127.0.0.1',
-        'port': 9036
+        'port': 9036,
+        'type': 'r'
     },
     3: {
         'ip': '127.0.0.1',
@@ -25,6 +29,6 @@ processes = {
 }
 
 cliente = Process(4, processes[4]['ip'],processes[4]['port'], processes, None)
-cliente.send(0, "MENSAGEM DE 4")
-cliente.receive()
+cliente.send(0, "MENSAGEM 1 DE 1")
+cliente.send(0, "MENSAGEM 2 DE 1")
 cliente.end()

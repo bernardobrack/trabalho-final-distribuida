@@ -71,4 +71,6 @@ class ActiveReplica(Replicate):
             print(f"Value of key {message.get('key')} updated to {message.get('value')}")
         if(message.get('operation') == 'get'):
             self.process.send(client_id, {'m': self.kvStorage.get('key'), 'counter': self.messageCounter})
-            self.messageCounter += 1  
+            self.messageCounter += 1
+        if(message.get('operation') == 'show'):
+            print(self.kvStorage)

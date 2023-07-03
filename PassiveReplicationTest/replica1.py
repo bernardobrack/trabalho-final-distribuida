@@ -1,18 +1,22 @@
 import sys
-from classes.process import Process
+sys.path.append('..')
+from classes.replicate import PassiveReplica
 
 processes = {
     0: {
         'ip': '127.0.0.1',
-        'port': 9034
+        'port': 9034,
+        'type': 'r'
     },
     1: {
         'ip': '127.0.0.1',
-        'port': 9035
+        'port': 9035,
+        'type': 'r'
     },
     2: {
         'ip': '127.0.0.1',
-        'port': 9036
+        'port': 9036,
+        'type': 'r'
     },
     3: {
         'ip': '127.0.0.1',
@@ -24,7 +28,4 @@ processes = {
     }
 }
 
-cliente = Process(3, processes[3]['ip'],processes[3]['port'], processes, None)
-cliente.send(2, "MENSAGEM DE 3")
-cliente.receive()
-cliente.end()
+replica = PassiveReplica(1, processes[1]['ip'], processes[1]['port'], processes)

@@ -1,5 +1,6 @@
-from classes.replicate import PassiveReplica
 import sys
+sys.path.append('..')
+from classes.replicate import PassiveReplica
 
 processes = {
     0: {

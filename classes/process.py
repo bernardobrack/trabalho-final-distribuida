@@ -138,11 +138,12 @@ class Process:
                 deliverable = False
         if(not deliverable):
             self.received.append((sender_id,message,st))
+            #print("NOT DELIVERABLE")
             return
         # Pode dar deliver
         self.received.append((sender_id, message, st))
         self.deliver_message(sender_id, message, st)
-        self.deliv[sender_id] =+ 1
+        self.deliv[sender_id] += 1
         self.sent[sender_id][self.id] += 1
         for k in range(len(self.sent)):
             for l in range(len(self.sent)):
@@ -160,7 +161,7 @@ class Process:
             if(deliverable):
                 any_delivered = True
                 self.deliver_message(sender_id,message,st)
-                self.deliv[sender_id] =+ 1
+                self.deliv[sender_id] += 1
                 self.sent[sender_id][self.id] += 1
                 for k in range(len(self.sent)):
                     for l in range(len(self.sent)):
