@@ -3,7 +3,6 @@ sys.path.append('..')
 from classes.process import Process
 from time import sleep
 
-
 processSequencer = {
     'ip': "127.0.0.1",
     'port': 9035
@@ -27,8 +26,7 @@ processes = {
     0: process0Dict,
     1: process1Dict,
     2: process2Dict
-}
-
+}    
 try:
     process_id = int(sys.argv[1])
 except:
@@ -37,12 +35,10 @@ except:
     
 process = Process(process_id, processes[process_id]['ip'], processes[process_id]['port'], processes, processSequencer)
 
-sleep(2)
-process.delayed_send(2,"HI FROM 0")
-process.delayed_send(1,"AND HI AGAIN FROM 0")
-process.send(1, "AAA")
-#print(process.deliver())
-#print(process.deliver())
-#print(process.deliver())
-#print(process.deliver())
+process.broadcast('4')
+print(process.deliver())
+print(process.deliver())
+print(process.deliver())
+print(process.deliver())
 process.end()
+

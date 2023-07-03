@@ -53,25 +53,17 @@ broadcast_sequencer = {
 }
 
 cliente = ActiveClient(4, replicas_and_self[4]['ip'], replicas_and_self[4]['port'], replicas_and_self, broadcast_sequencer, replicas)
-cliente.replicate({
-            'operation': 'put',
-            'key': '0',
-            'value': 'MENSAGEM 1'
-                   })
-cliente.replicate({
-            'operation': 'get',
-            'key': '0'
-})
-cliente.replicate({
-            'operation': 'put',
-            'key': '2',
-            'value': 'MENSAGEM 3'
-                   })
-cliente.replicate({
-            'operation': 'get',
-            'key': '2'
-})
-print(cliente.receive())
-print(cliente.receive())
-print(cliente.receive())
+while(True):
+    op = str(input('Operation (put, get, show, q)'))
+    if(op == 'q'):
+        break
+    key = str(input('Key: '))
+    value = str(input('value: '))
+    cliente.replicate({
+        'operation': op,
+        'key': key,
+        'value': value
+    })
+    if(op == 'get'):
+        cliente.receive()
 cliente.end()

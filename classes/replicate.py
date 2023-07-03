@@ -1,13 +1,12 @@
 from classes.process import Process, Process_type
 from typing import Dict, Union
-from threading import Lock
 
 class Replicate:
-    def __init__(self, id, ip, port, processes: Dict[int, Process_type], broadcast_sequencer: Union[None, Process_type]) -> None:
+    def __init__(self, id, ip, port, processes: Dict[int, Process_type], broadcast_sequencer: Union[None, Process_type], broadcastable=None) -> None:
         if(processes[id]['type'] != 'r'):
             print("A Replica process must have 'type': 'r' in it's Dict")
             exit(-1)
-        self.process = Process(id, ip, port, processes, broadcast_sequencer)
+        self.process = Process(id, ip, port, processes, broadcast_sequencer, broadcastable)
         self.processes = processes
         self.id = id
 
@@ -42,6 +41,7 @@ class PassiveReplica(Replicate):
                 if(sender_id == None):
                     # From client
                     self._replicate(message)
+                    print('replicou')
             else:
                 # From another replica
                 message = message['m']
@@ -52,8 +52,8 @@ class PassiveReplica(Replicate):
         print(message)
 
 class ActiveReplica(Replicate):
-    def __init__(self, id, ip, port, processes, broadcast_sequencer) -> None:
-        super().__init__(id, ip, port, processes, broadcast_sequencer)
+    def __init__(self, id, ip, port, processes, broadcast_sequencer, broadcastable) -> None:
+        super().__init__(id, ip, port, processes, broadcast_sequencer, broadcastable)
         self.kvStorage: Dict[str, any] = {}
         self.messageCounter: int = 1
         self._run()
@@ -67,10 +67,10 @@ class ActiveReplica(Replicate):
 
     def _dealWithMessage(self, message, client_id):
         if(message.get('operation') == 'put'):
-            self.kvStorage['key'] = message.get('value')
+            self.kvStorage[message.get('key')] = message.get('value')
             print(f"Value of key {message.get('key')} updated to {message.get('value')}")
         if(message.get('operation') == 'get'):
-            self.process.send(client_id, {'m': self.kvStorage.get('key'), 'counter': self.messageCounter})
+            self.process.send(client_id, {'m': self.kvStorage.get(message.get('key')), 'counter': self.messageCounter})
             self.messageCounter += 1
         if(message.get('operation') == 'show'):
             print(self.kvStorage)

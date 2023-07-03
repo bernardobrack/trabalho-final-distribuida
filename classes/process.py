@@ -91,6 +91,7 @@ class Process:
             self.sent.append(row)
 
     def send(self, target_id, message):
+        self.sent_lock.acquire()
         host = self.processes[target_id]['ip']
         port = self.processes[target_id]['port']
         data = {
@@ -98,7 +99,6 @@ class Process:
             'sent': self.sent,
             'sender_id': self.id
         }
-        self.sent_lock.acquire()
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.connect((host, port))
             serialized_d = json.dumps(data)
@@ -106,7 +106,15 @@ class Process:
         self.sent[self.id][target_id] += 1
         self.sent_lock.release()
     
-    def delayed_send_thread(self, target_id, message):
+    def delayed_send_thread(self, host, port, data):
+        sleep(3)
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.connect((host, port))
+            serialized_d = json.dumps(data)
+            s.sendall(bytes(serialized_d, encoding="UTF-8"))
+
+    def delayed_send(self, target_id, message):
+        self.sent_lock.acquire()
         host = self.processes[target_id]['ip']
         port = self.processes[target_id]['port']
         sent = []
@@ -117,30 +125,23 @@ class Process:
             'sent': sent,
             'sender_id': self.id
         }
-        self.sent_lock.acquire()
         self.sent[self.id][target_id] += 1
         self.sent_lock.release()
-        sleep(3)
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s.connect((host, port))
-            serialized_d = json.dumps(data)
-            s.sendall(bytes(serialized_d, encoding="UTF-8"))
-
-    def delayed_send(self, target_id, message):
-        t = threading.Thread(target=self.delayed_send_thread, args=[target_id, message])
+        t = threading.Thread(target=self.delayed_send_thread, args=[host, port, data])
         t.start()
 
     def receive_message(self, sender_id, message, st):
-        #print(f"Process {self.id} received message from {sender_id} with SENT {st}: {message}")
+        print(f"Process {self.id} received message from {sender_id}: {message}")
         deliverable = True
         for k, v in enumerate(self.deliv):
             if(st[k][self.id] > v ):
                 deliverable = False
         if(not deliverable):
             self.received.append((sender_id,message,st))
-            #print("NOT DELIVERABLE")
+            print("NOT DELIVERABLE")
             return
         # Pode dar deliver
+        print()
         self.received.append((sender_id, message, st))
         self.deliver_message(sender_id, message, st)
         self.deliv[sender_id] += 1
@@ -194,7 +195,7 @@ class Process:
                     continue
                 self.sent_lock.acquire()
                 self.receive_message(data['sender_id'], data['message'], data['sent'])
-            self.sent_lock.release()
+                self.sent_lock.release()
             conn.close()
     
     def broadcast(self,m):

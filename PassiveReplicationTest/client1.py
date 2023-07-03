@@ -1,6 +1,7 @@
 import sys
 sys.path.append('..')
 from classes.process import Process
+from time import sleep
 
 processes = {
     0: {
@@ -29,6 +30,8 @@ processes = {
 }
 
 cliente = Process(4, processes[4]['ip'],processes[4]['port'], processes, None)
-cliente.send(0, "MENSAGEM 1 DE 1")
-cliente.send(0, "MENSAGEM 2 DE 1")
+cliente.send(1, "MENSAGEM 1 DE 1")
+cliente.send(1, "MENSAGEM 2 DE 1")
+sleep(1)
+cliente.send(2, "MENSAGEM 3 DE 1")
 cliente.end()
